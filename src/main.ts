@@ -15,7 +15,7 @@ async function run(): Promise<void> {
 
         const pattern = core.getInput('project');
 
-        core.info(`project input: ${pattern}`);
+        core.debug(`project input: ${pattern}`);
 
         const globber = await glob.create(pattern);
         const files = await globber.glob();
@@ -26,23 +26,23 @@ async function run(): Promise<void> {
 
             let fidalgoExt = DEFAULT_FIDALGO_EXTENSION;
 
-            core.info(`Found project.yml file: ${file}`);
+            core.debug(`Found project.yml file: ${file}`);
 
             const contents = await fs.readFile(file, 'utf8');
             const project = yaml.load(contents) as Project;
 
             // allow for override of tenant
             if (project.tenant) {
-                core.info(`Found tenant id in project.yml file: ${project.tenant}`);
+                core.debug(`Found tenant id in project.yml file: ${project.tenant}`);
                 core.setOutput('tenant', project.tenant);
             } else {
                 // attempt to get tenant from azure using service principal
-                core.info('No tenant id found in project.yml file, attempting to get from Azure');
+                core.debug('No tenant id found in project.yml file, attempting to get from Azure');
 
                 const tenantId = await exec.getExecOutput('az', ['account', 'show', '--query', 'tenantId', '-o', 'tsv']);
 
                 if (tenantId.stdout) {
-                    core.info(`Found tenant with id: ${tenantId.stdout.trim()}`);
+                    core.debug(`Found tenant with id: ${tenantId.stdout.trim()}`);
                     core.setOutput('tenant', tenantId.stdout.trim());
                 } else {
                     core.setFailed(`Failed to get tenant id from Azure: ${tenantId.stderr}`);
@@ -50,38 +50,38 @@ async function run(): Promise<void> {
             }
 
             if (project.fidalgo) {
-                core.info('Found fidalgo section in project.yml file');
+                core.debug('Found fidalgo section in project.yml file');
 
                 // allow for override of extension
                 if (project.fidalgo.extension) {
                     fidalgoExt = project.fidalgo.extension;
-                    core.info(`Found fidalgo extension in project.yml file: ${fidalgoExt}`);
+                    core.debug(`Found fidalgo extension in project.yml file: ${fidalgoExt}`);
                 } else {
                     // use default extension
-                    core.info(`No fidalgo extension found in project.yml file, using default: ${fidalgoExt}`);
+                    core.debug(`No fidalgo extension found in project.yml file, using default: ${fidalgoExt}`);
                 }
 
                 core.setOutput('fidalgo', fidalgoExt);
 
                 if (project.fidalgo.project) {
-                    core.info('Found fidalgo project section in project.yml file');
+                    core.debug('Found fidalgo project section in project.yml file');
 
                     if (project.fidalgo.project.name) {
-                        core.info(`Found fidalgo project name in project.yml file: ${project.fidalgo.project.name}`);
+                        core.debug(`Found fidalgo project name in project.yml file: ${project.fidalgo.project.name}`);
                         core.setOutput('project_name', project.fidalgo.project.name);
                     } else {
                         core.setFailed(`Could not get fidalgo project name from project.yml: ${contents}`);
                     }
 
                     if (project.fidalgo.project.group) {
-                        core.info(`Found fidalgo project group in project.yml file: ${project.fidalgo.project.group}`);
+                        core.debug(`Found fidalgo project group in project.yml file: ${project.fidalgo.project.group}`);
                         core.setOutput('project_group', project.fidalgo.project.group);
                     } else {
                         core.setFailed(`Could not get fidalgo project group from project.yml: ${contents}`);
                     }
 
                     if (project.fidalgo.catalog_item) {
-                        core.info(`Found fidalgo catalog item in project.yml file: ${project.fidalgo.catalog_item}`);
+                        core.debug(`Found fidalgo catalog item in project.yml file: ${project.fidalgo.catalog_item}`);
                         core.setOutput('catalog_item', project.fidalgo.catalog_item);
                     } else {
                         core.setFailed(`Could not get fidalgo catalog item from project.yml: ${contents}`);
@@ -103,28 +103,28 @@ async function run(): Promise<void> {
 
             if (environmentShow.exitCode === 0) {
                 exists = true;
-                core.info('Found existing environment');
+                core.debug('Found existing environment');
                 const environment = JSON.parse(environmentShow.stdout) as FidalgoEnvironment;
                 core.setOutput('group', environment.resourceGroupId);
             } else {
 
                 const createIfNotExists = core.getBooleanInput('createIfNotExists');
-                core.info(`createIfNotExists: ${createIfNotExists}`);
+                core.debug(`createIfNotExists: ${createIfNotExists}`);
 
                 if (createIfNotExists) {
-                    core.info('Creating environment');
+                    core.debug('Creating environment');
                     const create = await exec.getExecOutput('az', ['fidalgo', 'admin', 'environment', 'create', '--only-show-errors', '-g', project.fidalgo.project.group, '--project-name', project.fidalgo.project.name, '-n', env_name, '--environment-type', env_type, '--catalog-item-name', project.fidalgo.catalog_item], { ignoreReturnCode: true });
                     if (create.exitCode === 0) {
                         exists = true;
                         created = true;
-                        core.info('Created environment');
+                        core.debug('Created environment');
                         const environment = JSON.parse(create.stdout) as FidalgoEnvironment;
                         core.setOutput('group', environment.resourceGroupId);
                     } else {
                         core.setFailed(`Failed to create environment: ${create.stderr}`);
                     }
                 } else {
-                    core.info(`No existing environment found: code: ${environmentShow.exitCode}`);
+                    core.debug(`No existing environment found: code: ${environmentShow.exitCode}`);
                 }
             }
 
