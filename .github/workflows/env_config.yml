@@ -1,0 +1,46 @@
+name: Get Environment
+
+on:
+  workflow_call:
+    # Map the workflow outputs to job outputs
+    outputs:
+      name:
+        description: 'The name of the environment'
+        value: ${{ jobs.env_config.outputs.name }}
+      type:
+        description: 'The type of the environment'
+        value: ${{ jobs.env_config.outputs.type }}
+
+env:
+  # format: ci-[branch|pr]-[branch name|pr number]-suffex
+  ENVIRONMENT_NAME: ci-${{ github.event_name == 'pull_request' && 'pr' || 'branch' }}-${{ github.event_name == 'pull_request' && github.event.number || github.event_name == 'push' && github.ref_name || github.event.ref }}-${{ github.event.repository.id }}
+
+  # branch/Pull request  | Environment Type
+  # ---------------------------------------
+  # dev/feature branches | Dev
+  # feature -> dev PRs   | Test
+  # dev -> main PRs      | Pre-Prod
+  # main branch          | Prod
+  ENVIRONMENT_TYPE: ${{ github.event_name == 'push' && (github.event.ref == 'refs/heads/main' && 'Prod' || 'Dev') || github.event_name == 'pull_request' && (github.event.pull_request.base.ref == 'main' && 'Pre-Prod' || 'Test') || 'Dev' }}
+
+jobs:
+  env_config:
+    name: Config
+    runs-on: ubuntu-latest
+    # Map the job outputs to step outputs
+    outputs:
+      name: ${{ steps.get_config.outputs.name }}
+      type: ${{ steps.get_config.outputs.type }}
+
+    steps:
+      - run: echo "- **Environment Name**  ${{ env.ENVIRONMENT_NAME }}" >> $GITHUB_STEP_SUMMARY
+      - run: echo "- **Environment Type**  ${{ env.ENVIRONMENT_TYPE }}" >> $GITHUB_STEP_SUMMARY
+
+      - id: get_config
+        shell: python
+        run: |
+          env_name = '${{ env.ENVIRONMENT_NAME }}'
+          env_type = '${{ env.ENVIRONMENT_TYPE }}'
+
+          print("::set-output name=name::{}".format(env_name))
+          print("::set-output name=type::{}".format(env_type))
