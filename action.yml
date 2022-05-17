@@ -1,0 +1,38 @@
+name: 'msdev action'
+description: 'github action for msdev'
+author: 'colbylwilliams'
+inputs:
+  name:
+    required: true
+    description: 'environment name'
+  type:
+    required: true
+    description: 'environment type'
+  project:
+    required: false
+    description: 'path to project.yml file'
+    default: 'project.yml'
+  createIfNotExists:
+    required: false
+    description: 'create the fidalgo environment if it does not exist'
+    default: 'false'
+outputs:
+  fidalgo:
+    description: 'The url to the fidalgo azure cli extension'
+  tenant:
+    description: 'The id of the azure tenant'
+  project_name:
+    description: 'The name of the project'
+  project_group:
+    description: 'The name of the project resource group'
+  catalog_item:
+    description: 'The name of the catalog item'
+  exists:
+    description: 'True if the environment exists otherwise False'
+  created:
+    description: 'True if the environment was created by the action otherwise False'
+  group:
+    description: 'The name of the environment resource group'
+runs:
+  using: 'node16'
+  main: 'dist/index.js'
