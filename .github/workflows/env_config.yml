@@ -37,6 +37,7 @@ jobs:
       - run: echo "- **Environment Type**  ${{ env.ENVIRONMENT_TYPE }}" >> $GITHUB_STEP_SUMMARY
 
       - id: get_config
+        name: Set Outputs
         shell: python
         run: |
           env_name = '${{ env.ENVIRONMENT_NAME }}'
