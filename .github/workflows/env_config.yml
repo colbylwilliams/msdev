@@ -45,3 +45,53 @@ jobs:
 
           print("::set-output name=name::{}".format(env_name))
           print("::set-output name=type::{}".format(env_type))
+
+      - name: Ensure GitHub Environments
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const environments_result = await github.rest.repos.getAllEnvironments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+            });
+
+            const environments = environments_result.data.environments;
+
+            const names = ['Dev', 'Test', 'Pre-Prod', 'Prod'];
+
+            for (let i = 0; i < names.length; i++) {
+              const name = names[i];
+              const exists = environments.some(e => e.name === name);
+              if (!exists) {
+                core.setFailed(`A GitHub environment named '${name}' does not exist. Create an environment nammed '${name}' with a secret named 'AZURE_CREDENTIALS'`);
+              }
+            }
+
+  # config:
+  #   name: Config JS
+  #   runs-on: ubuntu-latest
+
+  #   steps:
+  #     - id: config
+  #       name: Set Outputs
+  #       uses: actions/github-script@v6
+  #       with:
+  #         script: |
+  #           const part_ref = context.eventName === 'pull_request' ? 'pr' : 'branch';
+  #           const name_part = context.eventName === 'pull_request' ? context.issue.number : context.eventName === 'push' ? context.ref.split('/').slice(-1)[0] : context.ref;
+  #           const suffix_part = context.payload.repository!['id'];
+
+  #           const env_name = `ci-${part_ref}-${name_part}-${suffix_part}`;
+
+  #           core.info(`Setting environment name: ${env_name}`);
+  #           core.setOutput('name', env_name);
+
+  #           let env_type = 'Dev';
+
+  #           if (context.eventName === 'push') {
+  #               env_type = context.payload.ref === 'refs/heads/main' ? 'Prod' : 'Dev';
+  #           } else if (context.eventName === 'pull_request') {
+  #               env_type = context.payload.pull_request?.base.ref == 'main' && 'Pre-Prod' || 'Test';
+  #           }
+  #           core.info(`Setting environment type: ${env_type}`);
+  #           core.setOutput('type', env_type);
