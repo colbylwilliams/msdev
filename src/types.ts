@@ -1,20 +1,20 @@
 export interface Project {
     tenant?: string;
-    fidalgo: Fidalgo;
+    azure_deploy: AzureDeploy;
 }
 
-export interface Fidalgo {
+export interface AzureDeploy {
     extension?: string;
-    project: FidalgoProject;
+    project: AzureDeployProject;
     catalog_item: string;
 }
 
-export interface FidalgoProject {
+export interface AzureDeployProject {
     name: string;
     group: string;
 }
 
-export interface FidalgoEnvironment {
+export interface AzureDeployEnvironment {
     catalogItemName: string; // "Empty",
     deploymentParameters?: string; // null,
     description?: string; // null,
@@ -39,5 +39,4 @@ export interface SystemData {
     lastModifiedAt: Date; // "2022-05-17T16:56:45.172124+00:00",
     lastModifiedBy: string; // "2dc3760b-4713-48b1-a383-1dfe3e449ec2",
     lastModifiedByType: string; // "Application"
-
 }

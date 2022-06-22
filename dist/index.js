@@ -44,7 +44,7 @@ const exec = __importStar(__nccwpck_require__(1514));
 const glob = __importStar(__nccwpck_require__(8090));
 const fs = __importStar(__nccwpck_require__(3292));
 const yaml = __importStar(__nccwpck_require__(1917));
-const DEFAULT_FIDALGO_EXTENSION = 'https://fidalgosetup.blob.core.windows.net/cli-extensions/fidalgo-0.3.2-py3-none-any.whl';
+const DEFAULT_FIDALGO_EXTENSION = 'https://fidalgosetup.blob.core.windows.net/cli-extensions/fidalgo-0.4.0-py3-none-any.whl';
 function run() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
@@ -77,11 +77,11 @@ function run() {
                         core.setFailed(`Failed to get tenant id from Azure: ${tenantId.stderr}`);
                     }
                 }
-                if (project.fidalgo) {
-                    core.debug('Found fidalgo section in project.yml file');
+                if (project.azure_deploy) {
+                    core.debug('Found azure_deploy section in project.yml file');
                     // allow for override of extension
-                    if (project.fidalgo.extension) {
-                        fidalgoExt = project.fidalgo.extension;
+                    if (project.azure_deploy.extension) {
+                        fidalgoExt = project.azure_deploy.extension;
                         core.debug(`Found fidalgo extension in project.yml file: ${fidalgoExt}`);
                     }
                     else {
@@ -89,39 +89,39 @@ function run() {
                         core.debug(`No fidalgo extension found in project.yml file, using default: ${fidalgoExt}`);
                     }
                     core.setOutput('fidalgo', fidalgoExt);
-                    if (project.fidalgo.project) {
-                        core.debug('Found fidalgo project section in project.yml file');
-                        if (project.fidalgo.project.name) {
-                            core.debug(`Found fidalgo project name in project.yml file: ${project.fidalgo.project.name}`);
-                            core.setOutput('project_name', project.fidalgo.project.name);
+                    if (project.azure_deploy.project) {
+                        core.debug('Found azure deploy project section in project.yml file');
+                        if (project.azure_deploy.project.name) {
+                            core.debug(`Found azure deploy project name in project.yml file: ${project.azure_deploy.project.name}`);
+                            core.setOutput('project_name', project.azure_deploy.project.name);
                         }
                         else {
-                            core.setFailed(`Could not get fidalgo project name from project.yml: ${contents}`);
+                            core.setFailed(`Could not get azure deploy project name from project.yml: ${contents}`);
                         }
-                        if (project.fidalgo.project.group) {
-                            core.debug(`Found fidalgo project group in project.yml file: ${project.fidalgo.project.group}`);
-                            core.setOutput('project_group', project.fidalgo.project.group);
-                        }
-                        else {
-                            core.setFailed(`Could not get fidalgo project group from project.yml: ${contents}`);
-                        }
-                        if (project.fidalgo.catalog_item) {
-                            core.debug(`Found fidalgo catalog item in project.yml file: ${project.fidalgo.catalog_item}`);
-                            core.setOutput('catalog_item', project.fidalgo.catalog_item);
+                        if (project.azure_deploy.project.group) {
+                            core.debug(`Found azure deploy project group in project.yml file: ${project.azure_deploy.project.group}`);
+                            core.setOutput('project_group', project.azure_deploy.project.group);
                         }
                         else {
-                            core.setFailed(`Could not get fidalgo catalog item from project.yml: ${contents}`);
+                            core.setFailed(`Could not get azure deploy project group from project.yml: ${contents}`);
+                        }
+                        if (project.azure_deploy.catalog_item) {
+                            core.debug(`Found azure deploy catalog item in project.yml file: ${project.azure_deploy.catalog_item}`);
+                            core.setOutput('catalog_item', project.azure_deploy.catalog_item);
+                        }
+                        else {
+                            core.setFailed(`Could not get azure deploy catalog item from project.yml: ${contents}`);
                         }
                     }
                     else {
-                        core.setFailed(`No fidalgo project section found in project.yml file: ${contents}`);
+                        core.setFailed(`No azure deploy project section found in project.yml file: ${contents}`);
                     }
                 }
                 else {
-                    core.setFailed(`No fidalgo section found in project.yml file: ${contents}`);
+                    core.setFailed(`No azure_deploy section found in project.yml file: ${contents}`);
                 }
                 yield exec.exec('az', ['extension', 'add', '--only-show-errors', '-y', '-s', fidalgoExt]);
-                const environmentShow = yield exec.getExecOutput('az', ['fidalgo', 'admin', 'environment', 'show', '--only-show-errors', '-g', project.fidalgo.project.group, '--project-name', project.fidalgo.project.name, '-n', env_name], { ignoreReturnCode: true });
+                const environmentShow = yield exec.getExecOutput('az', ['fidalgo', 'admin', 'environment', 'show', '--only-show-errors', '-g', project.azure_deploy.project.group, '--project-name', project.azure_deploy.project.name, '-n', env_name], { ignoreReturnCode: true });
                 // const environment = await exec.getExecOutput('az', ['fidalgo', 'admin', 'environment', 'show', '-g', project.fidalgo.project.group, '--project-name', project.fidalgo.project.name, '-n', 'foo'], { ignoreReturnCode: true });
                 let exists = false;
                 let created = false;
@@ -136,7 +136,7 @@ function run() {
                     core.debug(`createIfNotExists: ${createIfNotExists}`);
                     if (createIfNotExists) {
                         core.debug('Creating environment');
-                        const create = yield exec.getExecOutput('az', ['fidalgo', 'admin', 'environment', 'create', '--only-show-errors', '-g', project.fidalgo.project.group, '--project-name', project.fidalgo.project.name, '-n', env_name, '--environment-type', env_type, '--catalog-item-name', project.fidalgo.catalog_item], { ignoreReturnCode: true });
+                        const create = yield exec.getExecOutput('az', ['fidalgo', 'admin', 'environment', 'create', '--only-show-errors', '-g', project.azure_deploy.project.group, '--project-name', project.azure_deploy.project.name, '-n', env_name, '--environment-type', env_type, '--catalog-item-name', project.azure_deploy.catalog_item], { ignoreReturnCode: true });
                         if (create.exitCode === 0) {
                             exists = true;
                             created = true;
