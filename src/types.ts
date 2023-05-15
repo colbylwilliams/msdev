@@ -1,20 +1,20 @@
 export interface Project {
     tenant?: string;
-    azure_deploy: AzureDeploy;
+    azure_deploy: DevCenter;
 }
 
-export interface AzureDeploy {
+export interface DevCenter {
     extension?: string;
-    project: AzureDeployProject;
+    project: DevCenterProject;
     catalog_item: string;
 }
 
-export interface AzureDeployProject {
+export interface DevCenterProject {
     name: string;
     group: string;
 }
 
-export interface AzureDeployEnvironment {
+export interface DeploymentEnvironment {
     catalogItemName: string; // "Empty",
     deploymentParameters?: string; // null,
     description?: string; // null,

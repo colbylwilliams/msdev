@@ -14,17 +14,19 @@ inputs:
     default: 'project.yml'
   createIfNotExists:
     required: false
-    description: 'create the fidalgo environment if it does not exist'
+    description: 'create the deployment environment if it does not exist'
     default: 'false'
 outputs:
-  fidalgo:
-    description: 'The url to the fidalgo azure cli extension'
+  extension:
+    description: 'The url to the devcenter azure cli extension'
   tenant:
     description: 'The id of the azure tenant'
-  project_name:
+  project:
     description: 'The name of the project'
-  project_group:
-    description: 'The name of the project resource group'
+  # project_name:
+  #   description: 'The name of the project'
+  # project_group:
+  #   description: 'The name of the project resource group'
   catalog_item:
     description: 'The name of the catalog item'
   exists:

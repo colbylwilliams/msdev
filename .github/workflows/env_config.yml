@@ -33,18 +33,14 @@ jobs:
       type: ${{ steps.get_config.outputs.type }}
 
     steps:
-      - run: echo "- **Environment Name**  ${{ env.ENVIRONMENT_NAME }}" >> $GITHUB_STEP_SUMMARY
-      - run: echo "- **Environment Type**  ${{ env.ENVIRONMENT_TYPE }}" >> $GITHUB_STEP_SUMMARY
+      - run: echo "- **Environment Name**  $ENVIRONMENT_NAME" >> $GITHUB_STEP_SUMMARY
+      - run: echo "- **Environment Type**  $ENVIRONMENT_TYPE" >> $GITHUB_STEP_SUMMARY
 
       - id: get_config
         name: Set Outputs
-        shell: python
         run: |
-          env_name = '${{ env.ENVIRONMENT_NAME }}'
-          env_type = '${{ env.ENVIRONMENT_TYPE }}'
-
-          print("::set-output name=name::{}".format(env_name))
-          print("::set-output name=type::{}".format(env_type))
+          "name=ENVIRONMENT_NAME" >> $GITHUB_OUTPUT
+          "type=ENVIRONMENT_TYPE" >> $GITHUB_OUTPUT
 
       - name: Ensure GitHub Environments
         uses: actions/github-script@v6

@@ -3,9 +3,10 @@ import * as exec from '@actions/exec';
 import * as glob from '@actions/glob';
 import * as fs from 'fs/promises';
 import * as yaml from 'js-yaml';
-import { AzureDeployEnvironment, Project } from './types';
+import { DeploymentEnvironment, Project } from './types';
 
-const DEFAULT_FIDALGO_EXTENSION = 'https://fidalgosetup.blob.core.windows.net/cli-extensions/fidalgo-0.4.0-py3-none-any.whl';
+// const DEFAULT_FIDALGO_EXTENSION = 'https://fidalgosetup.blob.core.windows.net/cli-extensions/fidalgo-0.4.0-py3-none-any.whl';
+const DEFAULT_DEVCENTER_EXTENSION = 'https://fidalgosetup.blob.core.windows.net/cli-extensions/devcenter-0.1.0-py3-none-any.whl';
 
 async function run(): Promise<void> {
     try {
@@ -23,7 +24,7 @@ async function run(): Promise<void> {
 
         if (file) {
 
-            let fidalgoExt = DEFAULT_FIDALGO_EXTENSION;
+            let devcenterExt = DEFAULT_DEVCENTER_EXTENSION;
 
             core.debug(`Found project.yml file: ${file}`);
 
@@ -53,14 +54,14 @@ async function run(): Promise<void> {
 
                 // allow for override of extension
                 if (project.azure_deploy.extension) {
-                    fidalgoExt = project.azure_deploy.extension;
-                    core.debug(`Found fidalgo extension in project.yml file: ${fidalgoExt}`);
+                    devcenterExt = project.azure_deploy.extension;
+                    core.debug(`Found fidalgo extension in project.yml file: ${devcenterExt}`);
                 } else {
                     // use default extension
-                    core.debug(`No fidalgo extension found in project.yml file, using default: ${fidalgoExt}`);
+                    core.debug(`No fidalgo extension found in project.yml file, using default: ${devcenterExt}`);
                 }
 
-                core.setOutput('fidalgo', fidalgoExt);
+                core.setOutput('fidalgo', devcenterExt);
 
                 if (project.azure_deploy.project) {
                     core.debug('Found azure deploy project section in project.yml file');
@@ -92,7 +93,7 @@ async function run(): Promise<void> {
                 core.setFailed(`No azure_deploy section found in project.yml file: ${contents}`);
             }
 
-            await exec.exec('az', ['extension', 'add', '--only-show-errors', '-y', '-s', fidalgoExt]);
+            await exec.exec('az', ['extension', 'add', '--only-show-errors', '-y', '-s', devcenterExt]);
 
             const environmentShow = await exec.getExecOutput('az', ['fidalgo', 'admin', 'environment', 'show', '--only-show-errors', '-g', project.azure_deploy.project.group, '--project-name', project.azure_deploy.project.name, '-n', env_name], { ignoreReturnCode: true });
             // const environment = await exec.getExecOutput('az', ['fidalgo', 'admin', 'environment', 'show', '-g', project.fidalgo.project.group, '--project-name', project.fidalgo.project.name, '-n', 'foo'], { ignoreReturnCode: true });
@@ -103,7 +104,7 @@ async function run(): Promise<void> {
             if (environmentShow.exitCode === 0) {
                 exists = true;
                 core.debug('Found existing environment');
-                const environment = JSON.parse(environmentShow.stdout) as AzureDeployEnvironment;
+                const environment = JSON.parse(environmentShow.stdout) as DeploymentEnvironment;
                 core.setOutput('group', environment.resourceGroupId);
             } else {
 
@@ -117,7 +118,7 @@ async function run(): Promise<void> {
                         exists = true;
                         created = true;
                         core.debug('Created environment');
-                        const environment = JSON.parse(create.stdout) as AzureDeployEnvironment;
+                        const environment = JSON.parse(create.stdout) as DeploymentEnvironment;
                         core.setOutput('group', environment.resourceGroupId);
                     } else {
                         core.setFailed(`Failed to create environment: ${create.stderr}`);
